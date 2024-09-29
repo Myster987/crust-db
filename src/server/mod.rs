@@ -1,8 +1,11 @@
 use std::env;
 
+use db::command::Command;
 use tokio::net::{TcpListener, TcpStream};
 
 use crate::utils::connection::Connection;
+
+pub mod db;
 
 #[allow(non_snake_case)]
 pub struct DatabaseServer {
@@ -12,9 +15,6 @@ pub struct DatabaseServer {
 // -- DatabaseServer -- Constructor
 impl DatabaseServer {
     pub fn new() -> Self {
-        dotenvy::dotenv().ok();
-        simple_logger::init_with_level(log::Level::Info).unwrap();
-
         let host_env_name = "CRUST_HOST";
 
         let host = match env::var(host_env_name) {
@@ -44,8 +44,13 @@ impl DatabaseServer {
     async fn process(socket: TcpStream) {
         let mut connection = Connection::new(socket);
 
-        if let Some(payload) = connection.parse_incoming_payload().await {
-            println!("{}", payload);
+        while let Some(payload) = connection.parse_incoming_payload().await {
+            let command = Command::new(payload);
+            
+            match command {
+                Ok(r) => { log::info!("{:?}", r)},
+                Err(e) => { log::warn!("{:?}", e)}
+            }
         }
     }
 }

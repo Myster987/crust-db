@@ -11,3 +11,5 @@ dotenvy = "0.15"
 
 simple_logger = "^5"
 log = "^0.4"
+
+regex = "1"
